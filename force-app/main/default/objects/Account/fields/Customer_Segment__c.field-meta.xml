@@ -24,6 +24,11 @@
                 <default>false</default>
                 <label>SMB</label>
             </value>
+            <value>
+                <fullName>Strategic</fullName>
+                <default>false</default>
+                <label>Strategic</label>
+            </value>
         </valueSetDefinition>
     </valueSet>
 </CustomField>

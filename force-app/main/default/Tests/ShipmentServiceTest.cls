@@ -98,4 +98,28 @@ private class ShipmentServiceTest {
         Account result = [SELECT Shipments_Processed__c FROM Account WHERE Id = :acc.Id]; //pedimos los datos de la account para ver que valores devolvio
         System.assertEquals(1, result.Shipments_Processed__c, 'El contador NO debe volver a sumar, debe quedarse en 1'); //revisamos si el valor es igual a uno, en caso de no serlo es que hay un error y manda el mensaje
     }
+    @isTest
+    static void TestBulkification(){
+        //declaramos
+        Account acc = [SELECT Id FROM Account LIMIT 1] //pedimos la cuenta
+        List<Shipment__c> shipments = new List<Shipment__c>(); // lista para acumular los 200 shipments
+        for (Integer i = 0; i < 200; i++) {
+            shipments.add(new Shipment__c(Account__c = acc.Id)); //asignamos la cuenta
+        }
+        //empezamos el test
+        Test.startTest();
+        insert shipments; //Un solo DML para la lista
+        for(Shipment__c s :shipments){
+            s.Status__c = 'Processed'; //se cambia el status
+        }
+        update s; //se da el update como un solo DML
+        Test.stopTest();
+
+        //Verificamos
+         Account result = [SELECT Shipments_Processed__c FROM Account WHERE Id = :acc.Id]; //traemos el valor de shipments procesados en la cuenta
+        System.assertEquals(200, result.Shipments_Processed__c, 'Los 200 shipments deben contarse correctamente en la cuenta'); //revisamos que esten los 200
+
+        System.assertEquals(0, Limits.getQueries(), 'No deberían quedar queries pendientes fuera de límite'); //revisamos que se hayan ejecutado las queris
+        System.assert(Limits.getDMLStatements() <= Limits.getLimitDMLStatements(), 'No se debe exceder el límite de sentencias DML'); //revisamos que no haya algun error de limites
+    }
 }

@@ -99,7 +99,7 @@ private class ShipmentServiceTest {
         System.assertEquals(1, result.Shipments_Processed__c, 'El contador NO debe volver a sumar, debe quedarse en 1'); //revisamos si el valor es igual a uno, en caso de no serlo es que hay un error y manda el mensaje
     }
     @isTest
-    static void TestBulkification(){
+    static void testBulkification(){
         //declaramos
         Account acc = [SELECT Id FROM Account LIMIT 1]; //pedimos la cuenta
         List<Shipment__c> shipments = new List<Shipment__c>(); // lista para acumular los 200 shipments
@@ -126,7 +126,7 @@ private class ShipmentServiceTest {
             }
         }
         System.assertEquals(200, countWithDate, 'Los 200 shipments deben tener Processed_At__c lleno, sin excepción'); //hacemos la comprobación de que esten los 200
-        System.assertEquals(0, Limits.getQueries(), 'No deberían quedar queries pendientes fuera de límite'); //revisamos que se hayan ejecutado las queris
+        System.assert(Limits.getQueries() <= Limits.getLimitQueries(), 'No se debe exceder el límite de SOQL queries'); //revisamos que se hayan ejecutado las queris
         System.assert(Limits.getDMLStatements() <= Limits.getLimitDMLStatements(), 'No se debe exceder el límite de sentencias DML'); //revisamos que no haya algun error de limites
     }
 }

@@ -101,7 +101,7 @@ private class ShipmentServiceTest {
     @isTest
     static void TestBulkification(){
         //declaramos
-        Account acc = [SELECT Id FROM Account LIMIT 1] //pedimos la cuenta
+        Account acc = [SELECT Id FROM Account LIMIT 1]; //pedimos la cuenta
         List<Shipment__c> shipments = new List<Shipment__c>(); // lista para acumular los 200 shipments
         for (Integer i = 0; i < 200; i++) {
             shipments.add(new Shipment__c(Account__c = acc.Id)); //asignamos la cuenta
@@ -112,13 +112,20 @@ private class ShipmentServiceTest {
         for(Shipment__c s :shipments){
             s.Status__c = 'Processed'; //se cambia el status
         }
-        update s; //se da el update como un solo DML
+        update shipments; //se da el update como un solo DML
         Test.stopTest();
 
         //Verificamos
-         Account result = [SELECT Shipments_Processed__c FROM Account WHERE Id = :acc.Id]; //traemos el valor de shipments procesados en la cuenta
+        Account result = [SELECT Shipments_Processed__c FROM Account WHERE Id = :acc.Id]; //traemos el valor de shipments procesados en la cuenta
         System.assertEquals(200, result.Shipments_Processed__c, 'Los 200 shipments deben contarse correctamente en la cuenta'); //revisamos que esten los 200
-
+        List<Shipment__c> processedShipments = [SELECT Processed_At__c FROM Shipment__c WHERE Id IN :shipments]; //pedimos los shipments
+        Integer countWithDate = 0; //hacemos una variable para hacer el conteo de shipments con fecha de processed at
+        for (Shipment__c s : processedShipments) {
+            if (s.Processed_At__c != null) { //revisamos que si el campo no esta vacio
+                countWithDate++;  //añadimos por cada uno que tenga fecha
+            }
+        }
+        System.assertEquals(200, countWithDate, 'Los 200 shipments deben tener Processed_At__c lleno, sin excepción'); //hacemos la comprobación de que esten los 200
         System.assertEquals(0, Limits.getQueries(), 'No deberían quedar queries pendientes fuera de límite'); //revisamos que se hayan ejecutado las queris
         System.assert(Limits.getDMLStatements() <= Limits.getLimitDMLStatements(), 'No se debe exceder el límite de sentencias DML'); //revisamos que no haya algun error de limites
     }
